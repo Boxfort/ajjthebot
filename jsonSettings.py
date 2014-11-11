@@ -1,6 +1,8 @@
 
 # Copyright (c) 2013 Brett g Porter
-# 
+#
+# License below inherited from parent project TMBOTG - Sam Gaus
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -33,10 +35,10 @@ import json
 
 class JsonSettings(object):
    '''
-      A class to persist our app's settings in a json file. We can access any 
+      A class to persist our app's settings in a json file. We can access any
       of the of the values in the settings either as
-      mySettings.attribute 
-      or 
+      mySettings.attribute
+      or
       mySettings['attribute']
 
       We separate
@@ -57,9 +59,9 @@ class JsonSettings(object):
 
    def Write(self):
       try:
-         if self._isDirty: 
+         if self._isDirty:
             with open(self._settingsFile, "wt") as f:
-               f.write(json.dumps(self._settings, indent=3, 
+               f.write(json.dumps(self._settings, indent=3,
                   separators=(',', ': ') ))
             self._isDirty = False
       except IOError, e:
@@ -67,15 +69,15 @@ class JsonSettings(object):
          raise SettingsFileError()
 
    def __getitem__(self, key):
-      ''' get an item from settings as if this were a dict. 
-         If there's nothing at that key, returns None instead of 
+      ''' get an item from settings as if this were a dict.
+         If there's nothing at that key, returns None instead of
          throwing an exception.
       '''
       return self._settings.get(key, None)
 
    def __getattr__(self, key):
-      ''' ...or, get a thing as an attribute using dot notation 
-         If there's nothing at that key, returns None instead of 
+      ''' ...or, get a thing as an attribute using dot notation
+         If there's nothing at that key, returns None instead of
          throwing an exception.
          '''
       return self._settings.get(key, None)
@@ -86,4 +88,4 @@ class JsonSettings(object):
          self._isDirty = True
       else:
          # we need to prevent recursion!
-         super(JsonSettings, self).__setattr__(key, val)   
+         super(JsonSettings, self).__setattr__(key, val)

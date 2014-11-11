@@ -1,7 +1,9 @@
 #! /usr/bin/env/python
 
+# License below inherited from parent project TMBOTG - Sam Gaus
+#
 # Copyright (c) 2013 Brett g Porter
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -37,7 +39,7 @@ from jsonSettings import JsonSettings as Settings
 
 
 
-# if we're started without a config file, we create a default/empty 
+# if we're started without a config file, we create a default/empty
 # file that the user can fill in and then restart the app.
 kDefaultConfigDict = {
    "appKey"             : "!!! Your app's 'Consumer Key'",
@@ -74,10 +76,10 @@ class LyricsFileError(Exception):
 
 
 
-         
- 
+
+
 def ParseFilename(filePath):
-   ''' we name files like "Album-Title_Track-Title.lyric". This function breaks 
+   ''' we name files like "Album-Title_Track-Title.lyric". This function breaks
       a string in that format apart and returns a tuple ("Album-Title", "Track-Title")
    '''
    path, fileName = os.path.split(filePath)
@@ -88,7 +90,7 @@ def ParseFilename(filePath):
 def TrimTweetToFit(listOfStrings, maxLength):
    '''
       Given a list of strings (one string per line), trim that list (usually from
-      the back, but occasionally from the front to keep things interesting) until 
+      the back, but occasionally from the front to keep things interesting) until
       it's less than or equal to the maxLength parameter.
    '''
    length = 0
@@ -123,23 +125,23 @@ class TmBot(object):
       if not argDict:
          argDict = { 'debug' : False, "force": False, 'botPath' : "."}
       # update this object's internal dict with the dict of args that was passed
-      # in so we can access those values as attributes.   
+      # in so we can access those values as attributes.
       self.__dict__.update(argDict)
 
-      # we build a list of dicts containing status (and whatever other args 
-      # we may need to pass to the update_status function as we exit, most 
+      # we build a list of dicts containing status (and whatever other args
+      # we may need to pass to the update_status function as we exit, most
       # probably 'in_reply-to_status_id' when we're replying to someone.)
       self.tweets = []
 
 
-      self.settings = Settings(self.GetPath("tmbotg.json"))
+      self.settings = Settings(self.GetPath("ajjtheband.json"))
       s = self.settings
       self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
 
    def GetPath(self, path):
       '''
          Put all the relative path calculations in one place. If we're given a path
-         that has a leading slash, we treat it as absolute and do nothing. Otherwise, 
+         that has a leading slash, we treat it as absolute and do nothing. Otherwise,
          we treat it as a relative path based on the botPath setting in our config file.
       '''
       if not path.startswith(os.sep):
@@ -154,7 +156,7 @@ class TmBot(object):
          timestamp = integer seconds since the UNIX epoch
          event = string identifying the event
          data1..n = individual data fields, as appropriate for each event type.
-         To avoid maintenance issues w/r/t enormous log files, the log filename 
+         To avoid maintenance issues w/r/t enormous log files, the log filename
          that's stored in the settings file is passed through datetime.strftime()
          so we can expand any format codes found there against the current date/time
          and create e.g. a monthly log file.
@@ -173,7 +175,7 @@ class TmBot(object):
          f.write("\n")
 
    def SendTweets(self):
-      ''' send each of the status updates that are collected in self.tweets 
+      ''' send each of the status updates that are collected in self.tweets
       '''
       for msg in self.tweets:
          if self.debug:
@@ -183,12 +185,12 @@ class TmBot(object):
 
    def CreateUpdate(self):
       '''
-         Called everytime the bot is Run(). 
+         Called everytime the bot is Run().
          If a random number is less than the probability that we should generate
          a tweet (or if we're told to force one), we look into the lyrics database
          and (we hope) append a status update to the list of tweets.
 
-         1/11/14: Added a configurable 'minimumSpacing' variable to prevent us from 
+         1/11/14: Added a configurable 'minimumSpacing' variable to prevent us from
          posting an update too frequently. Starting at an hour ()
 
       '''
@@ -208,7 +210,7 @@ class TmBot(object):
          doUpdate = True
 
       elif random() < self.settings.tweetProbability:
-         # Make sure that we're not tweeting too frequently. Default is to enforce 
+         # Make sure that we're not tweeting too frequently. Default is to enforce
          # a 1-hour gap between tweets (configurable using the 'minimumSpacing' key
          # in the config file, providing a number of minutes we must remain silent.)
          requiredSpace = self.settings.minimumSpacing
@@ -239,7 +241,7 @@ class TmBot(object):
       '''
          Get all the tweets that mention us since the last time we ran and process each
          one.
-         Any time we're mentioned in someone's tweet, we favorite it. If they ask 
+         Any time we're mentioned in someone's tweet, we favorite it. If they ask
          us a question, we reply to them.
       '''
       mentions = self.twitter.get_mentions_timeline(since_id=self.settings.lastMentionId)
@@ -256,11 +258,11 @@ class TmBot(object):
                print "Faving tweet {0} by {1}:\n {2}".format(theId, who, text.encode("utf-8"))
             else:
                self.twitter.create_favorite(id=theId)
-            
+
             eventType = 'Mention'
-            # if they asked us a question, reply to them.   
+            # if they asked us a question, reply to them.
             if "?" in text:
-               # create a reply to them. 
+               # create a reply to them.
                maxReplyLen = 120 - len(who)
                album, track, msg = self.GetLyric(maxReplyLen)
                # get just the first line
@@ -284,17 +286,17 @@ class TmBot(object):
 
 
    def GetLyric(self, maxLen, count=10):
-      ''' open a random lyric file, then grab a random stanza of lyrics from it, 
+      ''' open a random lyric file, then grab a random stanza of lyrics from it,
          then (if needed) trim it down into lines <= maxLen
          returns a tuple (album, track, stanza) (we may want to log the album/tracks
             that are being used...)
 
          If we don't immediately find a random chunk of text that meets the maxLen
-         criteria, we call ourself recursively, decrementing the count parameter until 
-         it hits zero, at which point we give up and raise an exception. Obviously, we 
-         could look for a longer time, or come up with a search algorithm to find text 
-         meets the current length criteria, or, or, or..., but I actually like the idea 
-         that it's possible to occasionally just throw up our hands and give up. We'll 
+         criteria, we call ourself recursively, decrementing the count parameter until
+         it hits zero, at which point we give up and raise an exception. Obviously, we
+         could look for a longer time, or come up with a search algorithm to find text
+         meets the current length criteria, or, or, or..., but I actually like the idea
+         that it's possible to occasionally just throw up our hands and give up. We'll
          try again in a bit.
       '''
       if 0 == count:
@@ -323,9 +325,9 @@ class TmBot(object):
 if __name__ == "__main__":
    import argparse
    parser = argparse.ArgumentParser()
-   parser.add_argument("--debug", action='store_true', 
+   parser.add_argument("--debug", action='store_true',
       help="print to stdout instead of tweeting")
-   parser.add_argument("--force", action='store_true', 
+   parser.add_argument("--force", action='store_true',
       help="force operation now instead of waiting for randomness")
    args = parser.parse_args()
    # convert the object returned from parse_args() to a plain old dict
