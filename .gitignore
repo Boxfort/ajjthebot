@@ -1,3 +1,11 @@
+# Lyrics
 data/
+
+# Config
 ajjthebot.json
+
+# Configured Python
 *.pyc
+
+# Logs
+*.txt
