@@ -133,8 +133,7 @@ class TmBot(object):
       # probably 'in_reply-to_status_id' when we're replying to someone.)
       self.tweets = []
 
-
-      self.settings = Settings(self.GetPath("ajjtheband.json"))
+      self.settings = Settings(self.GetPath("ajjthebot.json"))
       s = self.settings
       self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
 
