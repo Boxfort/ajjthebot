@@ -33,6 +33,14 @@
 
 import json
 
+class SettingsFileError(Exception):
+   def __init__(self, msg):
+      self.msg = msg
+
+   def __str__(self):
+      return self.msg
+
+
 class JsonSettings(object):
    '''
       A class to persist our app's settings in a json file. We can access any
@@ -43,7 +51,9 @@ class JsonSettings(object):
 
       We separate
    '''
-   def __init__(self, settingsFile):
+   def __init__(self, settingsFile, defaultDict=None):
+      if defaultDict is None:
+         defaultDict = {"newFile": "PLEASE EDIT THIS FILE"}
       try:
          self._settingsFile = settingsFile
          with open(settingsFile, "rt") as f:
@@ -52,7 +62,7 @@ class JsonSettings(object):
       except IOError:
          # can't open the settings file. Warn the user & create a blank file.
          # They'll need to edit that file and re-start this program.
-         self._settings = kDefaultConfigDict.copy()
+         self._settings = defaultDict.copy()
          self._isDirty = True
          self.Write()
          raise SettingsFileError(kSettingsFileErrorMsg.format(settingsFile))
@@ -89,3 +99,7 @@ class JsonSettings(object):
       else:
          # we need to prevent recursion!
          super(JsonSettings, self).__setattr__(key, val)
+
+   def __setitem__(self, key, val):
+      self._settings[key] = val
+      self._isDirty = True
