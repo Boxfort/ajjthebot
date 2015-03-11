@@ -3,6 +3,7 @@ data/
 
 # Config
 ajjthebot.json
+ajjthebot_history.json
 
 # Configured Python
 *.pyc
