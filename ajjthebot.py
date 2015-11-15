@@ -32,6 +32,8 @@ from random import choice
 from random import random
 from time import time
 from twython import Twython
+from twython import TwythonStreamer
+from twython.exceptions import TwythonError
 
 
 import os.path
@@ -71,7 +73,30 @@ class LyricsFileError(Exception):
       return self.msg
 
 
+class BotStreamer(TwythonStreamer):
 
+   def SetOutputPath(self, path):
+      self.path = path
+
+   def on_success(self, data):
+      # for now, all we're interested in handling are quoted tweets. 
+      if 'event' in data:
+         if data['event'] == 'quoted_tweet':
+            # get the id of the tweet that quotes us:
+            tweetId = data['target_object']['id_str']
+            # create a file that the other (periodic) cron-job bot process will handle.
+            # As very rudimentary IPC, we use the id of the tweet that quotes us as 
+            # a filename. If we want to do more using the streaming API, we might want to write
+            # more interesting data into the file to be parsed out later.
+            # Example -- we may want to extend the replies to questions so that we also 
+            # reply to questions in quote tweets as well.
+            with open(os.path.join(self.path, "{0}.fav".format(tweetId)), "wt") as f:
+               f.write("{0}".format(tweetId))
+
+
+   def on_error(self, status_code, data):
+      print "ERROR: {0}".format(status_code)
+      self.disconnect()
 
 
 
@@ -102,6 +127,8 @@ def TrimTweetToFit(listOfStrings, maxLength):
          # we can't trim any more because there's only one line left. Give up.
          return ""
       else:
+         # decoding this next line: create a list that weights the probability of 
+         # whether we trim lines from the end or the front (more frequently from the end)
          popIndex = choice([-1] * 8 + [0] * 2)
          listOfStrings.pop(popIndex)
          return TrimTweetToFit(listOfStrings, maxLength)
@@ -120,7 +147,7 @@ class TmBot(object):
 
    def __init__(self, argDict=None):
       if not argDict:
-         argDict = { 'debug' : False, "force": False, 'botPath' : "."}
+         argDict = { 'debug' : False, "force": False, 'stream': False, 'botPath' : "."}
       # update this object's internal dict with the dict of args that was passed
       # in so we can access those values as attributes.
       self.__dict__.update(argDict)
@@ -133,7 +160,11 @@ class TmBot(object):
       self.settings = Settings(self.GetPath("ajjthebot.json"))
       self.history = Settings(self.GetPath("ajjthebot_history.json"))
       s = self.settings
-      self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
+      if self.stream:
+         self.twitter = BotStreamer(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
+         self.twitter.SetOutputPath(self.botPath)
+      else:
+         self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
 
    def GetPath(self, path):
       '''
@@ -303,15 +334,48 @@ class TmBot(object):
             self.Log(eventType, [who])
 
 
-   def Run(self):
-      self.CreateUpdate()
-      self.HandleMentions()
-      self.SendTweets()
 
-      # if anything we did changed the settings, make sure those changes get written out.
-      self.settings.lastExecuted = str(datetime.now())
-      self.settings.Write()
-      self.history.Write()
+   def HandleQuotes(self):
+      ''' The streaming version of the bot may have detected some quoted tweets
+         that we want to respond to. Look for files with the .fav extension, and 
+         if we find any, handle them. 
+      '''
+      faves = glob(self.GetPath("*.fav"))
+      for fileName in faves:
+         with open(fileName, "rt") as f:
+            tweetId = f.readline().strip()
+            if self.debug:
+               print "Faving quoted tweet {0}".format(tweetId)
+            else:
+               try:
+                  self.twitter.create_favorite(id=tweetId)
+               except TwythonError as e:
+                  self.Log("EXCEPTION", str(e))
+         os.remove(fileName)
+
+
+   def Run(self):
+      if self.stream:
+         if self.debug:
+            print "About to stream from user account."
+         try:
+            # The call to user() will sit forever waiting for events on 
+            # our user account to stream down. Those events will be handled 
+            # for us by the BotStreamer object that we created ab
+            self.twitter.user()
+         except KeyboardInterrupt:
+            # disconnect cleanly from the server.
+            self.twitter.disconnect()
+      else:
+         self.CreateUpdate()
+         self.HandleMentions()
+         self.HandleQuotes()
+         self.SendTweets()
+
+         # if anything we dpsid changed the settings, make sure those changes get written out.
+         self.settings.lastExecuted = str(datetime.now())
+         self.settings.Write()
+         self.history.Write()
 
 
    def GetLyric(self, maxLen, count=10):
@@ -362,6 +426,9 @@ if __name__ == "__main__":
       help="print to stdout instead of tweeting")
    parser.add_argument("--force", action='store_true',
       help="force operation now instead of waiting for randomness")
+
+   parser.add_argument("--stream", action="store_true", 
+      help="run in streaming mode")
    args = parser.parse_args()
    # convert the object returned from parse_args() to a plain old dict
    argDict = vars(args)
