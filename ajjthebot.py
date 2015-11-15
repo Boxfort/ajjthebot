@@ -49,7 +49,7 @@ kDefaultConfigDict = {
    "appSecret"          : "!!! Your app's 'Consumer Secret'",
    "accessToken"        : "!!! your access token",
    "accessTokenSecret"  : "!!! your access token secret",
-   "lyricFilePath"      : "*.lyric",
+   "lyricFilePath"      : "ajjthelyrics/*/*.md",
    "tweetProbability"   : 24.0 / 1440,
    "minimumSpacing"     : 60*60,
    "minimumDaySpacing"  : 30,
