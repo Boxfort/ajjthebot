@@ -105,8 +105,9 @@ def ParseFilename(filePath):
       a string in that format apart and returns a tuple ("Album-Title", "Track-Title")
    '''
    path, fileName = os.path.split(filePath)
-   base, ext = os.path.splitext(fileName)
-   return tuple(base.split("_"))
+   rest, album = os.path.split(path)
+   title, ext = os.path.splitext(fileName)
+   return tuple([album, title])
 
 
 def TrimTweetToFit(listOfStrings, maxLength):
