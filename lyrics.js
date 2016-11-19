@@ -7,7 +7,7 @@ async function chooseSong() {
   // Pick a random song.
   const songs = await glob('ajjthelyrics/*/*.md');
   const song = songs[random(songs.length)];
-  return await fs.readFile(song, 'utf8');
+  return { song, lyrics: await fs.readFile(song, 'utf8')};
 }
 
 function trimToLength(lyrics, maxLength) {
@@ -23,7 +23,7 @@ function trimToLength(lyrics, maxLength) {
 
 async function pick(customLength) {
   const lengths = [60, 80, 120, 140];
-  const lyrics = await chooseSong();
+  const { song, lyrics } = await chooseSong();
 
   let length = customLength || lengths[random(lengths.length)];
 
@@ -37,7 +37,7 @@ async function pick(customLength) {
     length = lengths[lengths.indexOf(length) + 1] || lengths[lengths.length];
   }
 
-  return tweet;
+  return { song, tweet };
 }
 
 module.exports = { pick };

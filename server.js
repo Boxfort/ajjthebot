@@ -4,11 +4,6 @@ const moment = require('moment');
 const config = require('./config');
 const { pick } = require('./lyrics');
 
-const generateRandomInterval = (rate, minimum, maximum) => {
-  const interval = Math.floor(-Math.log(1 - Math.random()) / rate);
-  return Math.min(interval + minimum, maximum);
-}
-
 const T = new Twitter({
   consumer_key: config.get('consumer_key'),
   consumer_secret: config.get('consumer_secret'),
@@ -16,11 +11,16 @@ const T = new Twitter({
   access_token_secret: config.get('access_token_secret'),
 });
 
+const generateRandomInterval = (rate, minimum, maximum) => {
+  const interval = Math.floor(-Math.log(1 - Math.random()) / rate);
+  return Math.min(interval + minimum, maximum);
+}
+
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function tweeter() {
   while(true) {
-    const tweet = await pick();
+    const { song, tweet } = await pick();
     T.post('statuses/update', { status: tweet });
 
     const interval = generateRandomInterval(
@@ -28,6 +28,12 @@ async function tweeter() {
       config.get('minimum'),
       config.get('maximum')
     );
+
+    console.log('TWEET');
+    console.log('From:', song);
+    console.log('Tweeted:', tweet.replace(/\n/g, '\\n'));
+    console.log('Waiting:', moment.utc(interval).format('HH:mm:ss'));
+    console.log();
 
     await sleep(interval);
   }
@@ -46,6 +52,11 @@ function replyer () {
       const prefix = `@${user.screen_name} `;
       const reply = await pick(140 - prefix.length);
       T.post('statuses/update', { status: `${prefix}${reply}`, in_reply_to_status_id: id_str });
+
+      console.log(`REPLY (@${user.screen_name})`);
+      console.log('From:', song);
+      console.log('Tweeted:', tweet.replace(/\n/g, '\\n'));
+      console.log();
     }
   });
 }
