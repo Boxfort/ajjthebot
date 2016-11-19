@@ -16,8 +16,6 @@ const T = new Twitter({
   access_token_secret: config.get('access_token_secret'),
 });
 
-console.log(config.getProperties());
-
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function tweeter() {

@@ -7,7 +7,6 @@ async function chooseSong() {
   // Pick a random song.
   const songs = await glob('ajjthelyrics/*/*.md');
   const song = songs[random(songs.length)];
-  console.log(song);
   return await fs.readFile(song, 'utf8');
 }
 
