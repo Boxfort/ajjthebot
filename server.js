@@ -23,7 +23,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function tweeter() {
   while(true) {
     const tweet = await pick();
-    // T.post('statuses/update', { status: tweet });
+    T.post('statuses/update', { status: tweet });
 
     const interval = generateRandomInterval(
       config.get('rate'),

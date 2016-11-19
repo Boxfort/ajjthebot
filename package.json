@@ -5,15 +5,17 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node --harmony-async-await server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "convict": "^1.5.0",
     "glob-promise": "^1.0.6",
-    "moment": "^2.16.0",
     "mz": "^2.5.0",
     "twit": "^2.2.5"
+  },
+  "engines": {
+    "node": "7.x.x"
   }
 }

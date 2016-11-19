@@ -337,10 +337,6 @@ moment@2.12.0:
   version "2.12.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.12.0.tgz#dc2560d19838d6c0731b1a6afa04675264d360d6"
 
-moment@^2.16.0:
-  version "2.16.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.16.0.tgz#f38f2c97c9889b0ee18fc6cc392e1e443ad2da8e"
-
 mz:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/mz/-/mz-2.5.0.tgz#2859025df03d46b57bb317174b196477ce64cec1"
