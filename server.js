@@ -53,7 +53,7 @@ function replyer () {
       const { song, tweet: reply } = await pick(140 - prefix.length);
       T.post('statuses/update', { status: prefix + reply, in_reply_to_status_id: id_str });
 
-      console.log(`REPLY`);
+      console.log('REPLY');
       console.log('From:', song);
       console.log('Tweeted:', prefix + reply.replace(/\n/g, '\\n'));
       console.log();
