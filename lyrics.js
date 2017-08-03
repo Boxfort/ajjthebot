@@ -15,7 +15,7 @@ function trimToLength(lyrics, maxLength) {
 
   // Trim lines to size by removing lines (with a 3/4 chance of removing last line)
   while(lines.join('\n').length  > maxLength) {
-    lines = Math.random >= 0.75 ?  lines.slice(0, -1) : lines.slice(1);
+    lines = Math.random() >= 0.75 ?  lines.slice(0, -1) : lines.slice(1);
   }
 
   return lines.join('\n').trim();
